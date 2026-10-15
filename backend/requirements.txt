@@ -1,0 +1,7 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+pymupdf>=1.24,<2
+pydantic>=2.8,<3
+httpx>=0.27,<1
+
+PyJWT[crypto]>=2.10,<3
