@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src blob:; connect-src 'self' http://127.0.0.1:*; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>设备端工作区 · PastPaper Studio</title>
+  <link rel="stylesheet" href="./studio.css">
+  <script type="module" src="./studio.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到内容</a>
+  <header class="top"><div class="brand"><span class="mark" aria-hidden="true">P</span><div><strong>PastPaper Studio</strong><small>EXAM WORKSPACE</small></div></div><div class="device-top-actions">
+    <label class="sr-only" for="device-language">语言</label>
+    <select id="device-language"><option value="zh-CN">简体中文</option><option value="en">English</option></select>
+    <label class="sr-only" for="device-theme">外观</label>
+    <select id="device-theme"><option value="system">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select>
+    <span id="offline" class="badge live">设备端工作区</span></div></header>
+  <div class="layout">
+    <nav aria-label="工作区" class="nav">
+      <span class="nav-caption" aria-hidden="true">WORKSPACE</span>
+      <button type="button" data-view="library" aria-current="page"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h6l2 2h8v13H4zM4 10h16"/></svg>私人题库</button>
+      <button type="button" data-view="questions"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/></svg>搜题</button>
+      <button type="button" data-view="shared"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c4 4 4 12 0 16-4-4-4-12 0-16"/></svg>共享题库</button>
+      <button type="button" data-view="ai"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M5 5l3 3m8 8 3 3M19 5l-3 3m-8 8-3 3"/><circle cx="12" cy="12" r="3"/></svg>我的 AI</button>
+      <button type="button" data-view="data"><svg aria-hidden="true" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 4 14 4 14 0V6M5 12c0 4 14 4 14 0"/></svg>数据与备份</button>
+      <div class="rail-foot"><span class="live-dot" aria-hidden="true"></span><div><strong>设备存储</strong><small>私人记录随此浏览器保留</small></div></div>
+    </nav>
+    <main id="main" tabindex="-1">
+      <div id="message" role="status" hidden></div>
+      <section id="library" class="view" aria-labelledby="library-title">
+        <div class="hero">
+          <div class="hero-copy"><h1 id="library-title">私人题库</h1><p>整理真题、匹配评分细则、记录解题思路。<br class="desktop-break">PDF、笔记和草稿保存在你当前的浏览器。</p><div class="actions"><label class="button primary file-action">导入 PDF<input id="pdfs" type="file" accept=".pdf,application/pdf" multiple></label><label class="button secondary file-action">选择文件夹<input id="folder-pdfs" type="file" webkitdirectory multiple></label><button type="button" id="go-search" class="secondary">搜 PDF 正文 <span aria-hidden="true">↗</span></button></div></div>
+          <svg class="hero-art" aria-hidden="true" viewBox="0 0 420 230" fill="none"><defs><linearGradient id="signal" x1="70" y1="25" x2="340" y2="211" gradientUnits="userSpaceOnUse"><stop stop-color="#98a8ff"/><stop offset="1" stop-color="#65d9ef"/></linearGradient></defs><g stroke="url(#signal)"><ellipse cx="225" cy="115" rx="164" ry="56" transform="rotate(-22 225 115)" opacity=".32"/><ellipse cx="225" cy="115" rx="164" ry="56" transform="rotate(24 225 115)" opacity=".21"/><path d="M88 163h49l33-43h90l42-46h38M108 76h49l34 40h48l31 47h73" opacity=".36"/><rect x="181" y="49" width="99" height="130" rx="15" transform="rotate(11 181 49)" fill="#182647" opacity=".54"/><rect x="161" y="48" width="98" height="129" rx="15" fill="#1d2853" stroke-width="2"/><path d="M185 80h47m-47 18h47m-47 18h34m-34 18h23" stroke-width="2" stroke-linecap="round" opacity=".7"/><circle cx="264" cy="153" r="33" fill="#172748" stroke-width="2"/><circle cx="261" cy="149" r="11" stroke-width="3"/><path d="m269 157 9 9" stroke-width="3" stroke-linecap="round"/><circle cx="88" cy="163" r="4" fill="#aeb9ff"/><circle cx="340" cy="74" r="4" fill="#80deef"/><circle cx="108" cy="76" r="3" fill="#aeb9ff"/><circle cx="343" cy="163" r="3" fill="#80deef"/></g></svg>
+        </div>
+        <section id="folder-review" class="panel stack" hidden aria-labelledby="folder-review-title">
+          <h2 id="folder-review-title">确认要导入的 PDF</h2>
+          <p id="folder-summary" role="status"></p>
+          <progress id="folder-progress" aria-label="PDF 导入进度" hidden></progress>
+          <ul id="folder-entries" class="rows"></ul>
+          <div class="actions"><button type="button" id="folder-import" class="primary">导入所选 PDF</button><button type="button" id="folder-retry" hidden>重试失败文件</button></div>
+        </section>
+        <div class="panel library-panel">
+          <div class="toolbar"><div><h2>我的资料</h2><p>筛选已保存的试卷与笔记</p></div><span id="count" class="badge"></span></div>
+          <label class="search"><span class="sr-only">搜索题库</span><input id="search" type="search" placeholder="搜索文件名、科目代码或笔记" maxlength="120"></label>
+          <ul id="papers" class="rows"></ul>
+          <div id="empty" class="empty"><span aria-hidden="true">▤</span><h2>添加第一份试卷</h2><p>导入试卷与评分细则后，系统会按文件名自动配对。</p></div>
+          <p id="no-papers" class="empty" hidden>没有符合条件的资料。试试其他关键词。</p>
+        </div>
+        <form id="editor" class="panel stack" hidden>
+          <div class="heading"><h2 id="edit-title"></h2><button type="button" id="close-editor">关闭</button></div>
+          <label>学习笔记<textarea id="notes" rows="3" maxlength="8000"></textarea></label>
+          <label>练习草稿<textarea id="draft" rows="4" maxlength="8000"></textarea></label>
+          <div class="actions"><button class="primary">保存记录</button><button type="button" id="open-paper">打开 PDF</button><button type="button" id="remove-paper" class="danger">移除本地副本</button></div>
+        </form>
+      </section>
+      <section id="questions" class="view" aria-labelledby="questions-title" hidden>
+        <div class="heading section-heading"><div><h1 id="questions-title">搜题</h1><p>搜索此设备上保存的试卷，直接查看原题截图。</p></div><span class="badge">设备内搜索</span></div>
+        <form id="question-form" class="panel stack">
+          <div class="question-filters">
+            <label>题目关键词<input id="question-query" type="search" maxlength="120" placeholder="题目关键词 / 知识点"></label>
+            <label>知识点<select id="question-topic"><option value="">全部知识点</option></select></label>
+            <label>科目代码<input id="question-subject" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="如 0580"></label>
+            <label>难度<select id="question-difficulty"><option value="">全部难度</option><option value="easy">简单</option><option value="medium">中等</option><option value="hard">较难</option></select></label>
+            <label>试卷级别<select id="question-level"><option value="">全部级别</option><option>Core</option><option>Extended</option></select></label>
+            <label>起始年份<input id="question-year" type="number" min="1900" max="2099" placeholder="如 2025"></label>
+            <label>最高分值<input id="question-marks" type="number" min="1" max="100" placeholder="如 4"></label>
+            <label>试卷范围<select id="question-scope"><option value="">最近导入的 40 份试卷</option></select></label>
+          </div>
+          <div class="actions"><button class="primary" id="find-questions">搜索正文</button><button type="button" id="stop-search" hidden>停止搜索</button></div>
+          <p class="subtle">每份最多检索前 100 页。Cambridge 数学 0580 可识别常见小题、分值和知识点，难度按分值估算。其他版式可查看原页；纯扫描件需先做 OCR。</p>
+        </form>
+        <p id="question-status" role="status">输入关键词或选择筛选项开始搜索。</p>
+        <ul id="question-results" class="question-results" aria-label="搜索结果"></ul>
+      </section>
+      <section id="shared" class="view" aria-labelledby="shared-title" hidden>
+        <div class="heading"><div><h1 id="shared-title">共享题库</h1><p>经审核的题目可供所有访客下载。你的私人题库和学习记录不会上传。</p></div><button type="button" id="reload-shared">刷新题库</button></div>
+        <div class="panel stack"><p id="shared-status" role="status">正在读取共享题库…</p><ul id="shared-papers" class="rows"></ul><button type="button" id="more-shared" hidden>加载更多</button></div>
+        <form id="share-form" class="panel stack" hidden>
+          <h2>提交题目供审核</h2>
+          <p>只上传你在这里选择的 PDF 和公开标题。请先去除姓名、批注及个人信息，并确认拥有分享权利。</p>
+          <label>公开标题<input id="share-title" maxlength="100" required></label>
+          <label>选择用于分享的 PDF<input id="share-file" type="file" accept=".pdf,application/pdf" required></label>
+          <label>投稿码<input id="share-code" type="password" autocomplete="off" maxlength="160" required></label>
+          <label class="check"><input id="share-consent" type="checkbox" required>我确认此 PDF 可以公开分发，并授权上传到共享题库供审核。</label>
+          <div class="actions"><button class="primary">提交审核</button></div>
+        </form>
+        <details id="moderation" class="panel" hidden><summary>维护者审核</summary>
+          <form id="review-form" class="stack"><label>审核密钥<input id="review-key" type="password" autocomplete="off" maxlength="160" required></label><div class="actions"><button>读取待审核列表</button><button type="button" id="clear-review">清除密钥</button></div></form>
+          <ul id="review-papers" class="rows"></ul>
+        </details>
+      </section>
+      <section id="ai" class="view" aria-labelledby="ai-title" hidden>
+        <div class="heading"><div><h1 id="ai-title">我的 AI</h1><p>连接这台设备上的模型。只有你点击发送时，输入框中的内容才会发给所选运行时。</p></div><span id="ai-state" class="badge" role="status">未连接</span></div>
+        <form id="ai-config" class="panel stack">
+          <h2>本机运行时</h2>
+          <div class="fields"><label>提供方<select id="provider"><option value="ollama">Ollama</option><option value="lmstudio">LM Studio</option></select></label><label>本机端口<input id="port" type="number" min="1" max="65535" value="11434" required></label></div>
+          <label id="runtime-key-label" hidden>本机运行时令牌（可选）<input id="runtime-key" type="password" autocomplete="off" maxlength="512"></label>
+          <label>模型<select id="model" disabled required><option value="">连接后选择</option></select></label>
+          <p>只连接 127.0.0.1。请将运行时配置为仅本地模型，并只允许当前网页来源。连接信息和令牌仅在当前页面内使用，刷新即清除。</p>
+          <div class="actions"><button class="primary">连接并读取模型</button><button type="button" id="disconnect">断开并清除</button></div>
+        </form>
+        <form id="ai-form" class="panel stack">
+          <h2>学习助手</h2><label>你想发送的内容<textarea id="prompt" rows="4" maxlength="8000" required></textarea></label>
+          <div class="actions"><button id="send-ai" class="primary" disabled>发送给本机模型</button><button type="button" id="stop-ai" disabled>停止</button></div><pre id="answer" aria-live="polite" hidden></pre>
+        </form>
+        <div class="note"><strong>需要云端 AI？</strong> 请使用你自己设备上的独立安装与自己的授权。这个网页不接收云端 API Key，也不会借用站主账号。云服务会接收你明确发送的内容。</div>
+      </section>
+      <section id="data" class="view" aria-labelledby="data-title" hidden>
+        <div class="heading"><div><h1 id="data-title">数据与备份</h1><p id="usage"></p></div></div>
+        <div class="panel stack"><h2>备份当前设备</h2><p>备份包含私人 PDF、笔记及练习草稿。文件未加密，请妥善保管。导入备份会合并记录，已有记录不会被覆盖。</p><div class="actions"><button id="export" class="primary">导出备份</button><label class="button file-action">导入备份<input id="restore" type="file" accept=".ppstudio"></label></div></div>
+        <div class="panel stack"><h2>隐私与离线</h2><p>同一个浏览器配置里的使用者可能访问同一份本地数据。共用电脑请使用独立浏览器配置。切换设备或网址不会同步；清除站点数据可能丢失记录。</p><p id="offline-detail">首次打开时需要加载网页。若浏览器支持离线缓存，之后可重新打开私人题库。</p><p>旧版 LAN 题库仍使用主机存储，没有自动转移到此处。</p></div>
+      </section>
+    </main>
+  </div>
+  <noscript>设备端工作区需要浏览器启用 JavaScript。</noscript>
+</body>
+</html>

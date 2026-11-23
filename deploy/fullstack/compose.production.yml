@@ -1,0 +1,7 @@
+services:
+  mail-worker:
+    environment:
+      PASTPAPER_SYNTHETIC_MAIL_CAPTURE: "0"
+  api:
+    environment:
+      PASTPAPER_SYNTHETIC_MAIL_CAPTURE: "0"

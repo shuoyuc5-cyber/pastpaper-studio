@@ -8,6 +8,7 @@ Dependencies, language data and models are downloaded separately and retain thei
 | --- | --- |
 | Next.js | https://github.com/vercel/next.js |
 | React | https://github.com/facebook/react |
+| Mozilla PDF.js (Apache-2.0) | https://github.com/mozilla/pdf.js |
 | FastAPI | https://github.com/fastapi/fastapi |
 | Uvicorn | https://github.com/encode/uvicorn |
 | PyMuPDF/MuPDF | https://pymupdf.readthedocs.io/en/latest/about.html#license-and-copyright |
@@ -18,6 +19,6 @@ Dependencies, language data and models are downloaded separately and retain thei
 | Tesseract (optional) | https://github.com/tesseract-ocr/tesseract |
 | Ollama (optional) | https://github.com/ollama/ollama |
 
-PyMuPDF/MuPDF offers AGPL or commercial licensing. This source project uses AGPL v3.0; read full terms for redistribution or modified hosted services. AI models have separate licenses. No Cambridge exam PDFs, trademarks or redistribution permissions are licensed by this project; names and identifiers describe compatibility only.
+The device build copies the Mozilla PDF.js license to `device/pdf-engine/LICENSE.txt`. The PDF.js standard rendering fonts carry the upstream Foxit and Liberation licenses in `device/pdf-engine/standard-fonts/`. PyMuPDF/MuPDF offers AGPL or commercial licensing. This source project uses AGPL v3.0; read full terms for redistribution or modified hosted services. AI models have separate licenses. No Cambridge exam PDFs, trademarks or redistribution permissions are licensed by this project; names and identifiers describe compatibility only.
 
 PyMuPDF/MuPDF 提供 AGPL 或商业许可，本项目源码采用 AGPL v3.0。再分发或提供修改版服务时请阅读完整条款。各 AI 模型另有许可；本项目不授权 Cambridge 试卷分发，名称仅描述兼容对象。

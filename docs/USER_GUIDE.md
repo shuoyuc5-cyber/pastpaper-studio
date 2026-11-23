@@ -26,6 +26,10 @@ Ordinary users cannot use AI by default. Administrators control local/cloud AI p
 
 普通账号默认无 AI 权限；管理员可控制权限和启停。获准用户连接自己的云账号，不使用所有者账号，基础 PDF 功能不依赖 AI。
 
+In **Settings → Accounts and AI permissions**, administrators can create a learner account with a username and a password of at least eight characters. The learner can sign in immediately. Deleting a learner revokes their sessions and removes their local ChatGPT credentials. PDFs and study records stay on disk; a new account with the same name does not inherit them. Administrator accounts cannot be deleted here.
+
+管理员可在**设置与存储 → 账号与 AI 权限**设置用户名和至少 8 位的初始密码，创建后对方可直接登录。删除学习账号会撤销登录会话并清除本机 ChatGPT 凭证；PDF 和学习记录仍保留，同名新账号不会继承。这里不能删除管理员账号。
+
 ## Duplicate cleanup / 重复清理
 
 Administrators open **需要留意 → 管理重复文件**. Choose individual cleanup or **一键删除所有重复文件**, confirm once and keep the tab open for batch progress. Each item checks ownership, duplicate status, direct paper references, unchanged content and an accessible identical completed original.

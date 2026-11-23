@@ -6,6 +6,7 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 with tempfile.TemporaryDirectory(prefix='studio-builder-') as temp:
+    os.environ['PASTPAPER_LEGACY_GUEST_WRITES']='1'
     os.environ['PASTPAPER_DATA_DIR'] = temp + '/data'
     from app import main, studio
     from fastapi.testclient import TestClient
@@ -24,13 +25,20 @@ with tempfile.TemporaryDirectory(prefix='studio-builder-') as temp:
                 for part in ('a','b'):
                     label = f'{root}({part})'
                     conn.execute("""INSERT INTO questions(id,paper_id,label,root_label,leaf,stem,segments,context_segments,ms_segments,official_answer,official_guidance,marks,topic_auto,difficulty,updated_at)
-                      VALUES(?,'paper',?,?,1,'Synthetic fixture',?,'[]','[]','','',2,'["Probability"]','easy','now')""", (label,label,str(root),studio.js([{'page':1,'rect':[40,50,300,100]}])))
+                      VALUES(?,'paper',?,?,1,?,?,'[]','[]','','',2,'["Probability"]','easy','now')""",
+                      (label,label,str(root),'Synthetic refraction' if root<=5 else 'Another topic',studio.js([{'page':1,'rect':[40,50,300,100]}])))
         assert client.post('/api/builder/auto', json={'count':5}).status_code == 400
-        draft = client.post('/api/builder/auto', json={'count':5,'include_pending':True,'total_marks':10})
+        draft = client.post('/api/builder/auto', json={'count':5,'include_pending':True,'total_marks':10,'q':' refraction '})
         assert draft.status_code == 200, draft.text
         draft = draft.json()
         assert len(draft['items']) == 5 and draft['pending_count'] == 5
         assert len({i['question_id'].split('(')[0] for i in draft['items']}) == 5
+        assert all(not i['question_id'].startswith('6') for i in draft['items'])
+        assert client.post('/api/builder/auto', json={'count':1,'include_pending':True,'max_marks':1}).status_code == 400
+        ids = [i['question_id'] for i in reversed(draft['items'])]
+        preview = client.post('/api/builder/preview',json={'question_ids':ids+['missing']}).json()['questions']
+        assert [q['id'] for q in preview[:-1]] == ids and preview[-1] is None
+        assert all(q['review_status']=='pending' and q['segments'] and 'official_answer' not in q for q in preview[:-1])
         for kind in ('qp','ms','study'):
             assert client.post('/api/builder/export?kind='+kind, json={'items':draft['items']}).status_code == 400
         assert all(q['review_status']=='pending' for q in client.get('/api/questions').json()['questions'])
@@ -43,12 +51,14 @@ with tempfile.TemporaryDirectory(prefix='studio-builder-') as temp:
         assert confirmed['pending_count'] == 0 and confirmed['items'][0]['question_id'] == '1(a)'
         mixed = client.post('/api/builder/auto', json={'count':5,'include_pending':True}).json()
         assert mixed['pending_count'] == 4 and mixed['items'][0]['question_id'] == '1(a)'
-        assert client.post('/api/builder/export?kind=qp', json={'items':confirmed['items']}).status_code == 200
+        downloaded = client.post('/api/builder/export?kind=qp', json={'items':confirmed['items']})
+        assert downloaded.status_code == 200 and downloaded.content.startswith(b'%PDF-')
         assert client.post('/api/builder/export?kind=ms', json={'items':confirmed['items']}).status_code == 400
         owner_cookies=dict(client.cookies)
         code=client.post('/api/admin/invitations',json={}).json()['code']
         student=client.post('/api/auth/register', json={'username':'builder-student','password':'temporary-test-password','invite_code':code}).json()['user']['id']
         assert client.post('/api/builder/auto', json={'count':1,'include_pending':True}).status_code == 400
+        assert client.post('/api/builder/preview',json={'question_ids':['1(a)']}).json()['questions']==[None]
         assert client.get('/api/questions/1(a)/image').status_code==404
         client.cookies.clear();client.cookies.update(owner_cookies)
         image=client.get('/api/questions/1(a)/image')

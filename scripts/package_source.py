@@ -11,18 +11,18 @@ FIXED=[
     'CONTRIBUTING.md','THIRD_PARTY_NOTICES.md','backend/requirements.txt',
     'backend/requirements-lock.txt','frontend/package.json','frontend/package-lock.json',
     'frontend/tsconfig.json','frontend/next.config.ts','frontend/server-lan.cjs',
-    'frontend/server-https.cjs','outputs/start_studio.py','outputs/https_setup.py',
+    'frontend/server-https.cjs','frontend/client-access.cjs','outputs/start_studio.py','outputs/https_setup.py',
     'outputs/Start PastPaper Studio.command','outputs/启动 PastPaper Studio.command',
-    'scripts/package_source.py',
+    'scripts/package_source.py','frontend/scripts/prepare-device.mjs','.env.example',
 ]
-GROUPS={'backend/app':{'.py'},'backend/scripts':{'.py'},'frontend/app':{'.ts','.tsx','.css'},'docs':{'.md'}}
+GROUPS={'backend/app':{'.py'},'backend/scripts':{'.py'},'frontend/app':{'.ts','.tsx','.css'},'frontend/public/device':{'.html','.css','.mjs','.js'},'deploy/cloudflare':{'.mjs','.toml'},'tests':{'.mjs'},'docs':{'.md'}}
 
 
 def source_files():
     paths=set(FIXED)
     for directory,suffixes in GROUPS.items():
         for path in (ROOT/directory).rglob('*'):
-            if path.is_file() and path.suffix in suffixes and '__pycache__' not in path.parts:
+            if path.is_file() and path.suffix in suffixes and '__pycache__' not in path.parts and 'pdf-engine' not in path.parts:
                 paths.add(path.relative_to(ROOT).as_posix())
     for name in sorted(paths):
         path=ROOT/name

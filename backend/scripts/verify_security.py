@@ -10,12 +10,13 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 with tempfile.TemporaryDirectory(prefix='studio-security-') as temp:
+    os.environ['PASTPAPER_LEGACY_GUEST_WRITES']='1'
     os.environ['PASTPAPER_DATA_DIR']=temp+'/data'
     from app import main,studio,security
     import pymupdf
     from app.render_limits import check_render_size
     with TestClient(main.app) as client:
-        credentials={'username':'owner','password':'temporary-security-password'}
+        credentials={'username':'owner','email':'owner@example.test','password':'temporary-security-password'}
         assert client.post('/api/auth/register',json=credentials).status_code==200
         owner_cookies=dict(client.cookies)
         with patch.object(pymupdf,'image_profile',return_value={'width':100000,'height':100000}),patch.object(pymupdf,'Pixmap') as decode:

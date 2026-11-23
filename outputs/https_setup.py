@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 
 ROOT = Path(__file__).resolve().parent.parent
-TLS = ROOT / 'backend' / 'data' / 'tls'
+TLS = Path(os.environ.get('PASTPAPER_DATA_DIR', Path(os.environ.get('PASTPAPER_INSTALL_ROOT',ROOT)) / 'backend' / 'data')) / 'tls'
 PUBLIC = ROOT / 'outputs' / 'PastPaper Studio 局域网证书.cer'
 
 

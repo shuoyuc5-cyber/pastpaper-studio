@@ -7,7 +7,7 @@ if [[ ! -x "$PROJECT_PYTHON" ]]; then
   read "?按回车关闭窗口…"
   exit 1
 fi
-"$PROJECT_PYTHON" "$SCRIPT_DIR/start_studio.py" --restart
+"$PROJECT_PYTHON" "$SCRIPT_DIR/start_studio.py" "$@"
 if [ "$?" -ne 0 ]; then
   read "?按回车关闭窗口…"
 fi

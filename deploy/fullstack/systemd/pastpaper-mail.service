@@ -1,0 +1,34 @@
+[Unit]
+Description=PastPaper Studio mail worker
+After=network.target
+
+[Service]
+Type=simple
+User=pastpaper
+Group=pastpaper
+EnvironmentFile=/etc/pastpaper/fullstack.env
+WorkingDirectory=/opt/pastpaper/current
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictSUIDSGID=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+CapabilityBoundingSet=
+Restart=on-failure
+RestartSec=3
+ExecStart=/opt/pastpaper/current/backend/.venv/bin/python scripts/public_service.py mail-worker
+ReadWritePaths=/var/lib/pastpaper/data
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CPUQuota=30%
+MemoryMax=256M
+TasksMax=64
+KillMode=mixed
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

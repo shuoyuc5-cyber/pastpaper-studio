@@ -2,6 +2,8 @@
 import json
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, Field
+from . import public_mode, pdf_sandbox
+from .security import heavy_operation
 from .question_engine import validate_segments, segment_text
 import pymupdf
 
@@ -24,9 +26,16 @@ def install(app,S):
         labels=[p.label for p in parts]
         if len(set(labels))!=len(labels): raise HTTPException(400,'新题号不能重复')
         try:
-            for p in parts:
-                validate_segments(qp,p.segments+p.context_segments)
-                if p.ms_segments: validate_segments(ms,p.ms_segments)
+            prepared = None
+            if public_mode.ORIGIN:
+                with heavy_operation():
+                    stems = pdf_sandbox.run('segments',qp,[p.context_segments+p.segments for p in parts],inputs=(qp,))
+                    guidance = pdf_sandbox.run('segments',ms,[p.ms_segments for p in parts],inputs=(ms,)) if ms else ['']*len(parts)
+                prepared = list(zip(stems,guidance))
+            else:
+                for p in parts:
+                    validate_segments(qp,p.segments+p.context_segments)
+                    if p.ms_segments: validate_segments(ms,p.ms_segments)
             if kind=='split':
                 # A split must partition the original body, without dropping or duplicating material.
                 original=old[0]['segments']
@@ -50,14 +59,17 @@ def install(app,S):
                 row=conn.execute('SELECT * FROM questions WHERE id=? AND active=1',(q['id'],)).fetchone()
                 if not row or row['updated_at']!=q['updated_at']: raise HTTPException(409,'题目已被其他操作修改，请刷新')
                 snapshots.append(dict(row))
-            for p in parts:
+            for index,p in enumerate(parts):
                 if conn.execute('SELECT 1 FROM questions WHERE paper_id=? AND label=?',(old[0]['paper_id'],p.label)).fetchone(): raise HTTPException(409,'题号 '+p.label+' 已存在，请使用新题号')
                 row=dict(snapshots[0]);row.update(id=S.uid(),label=p.label,leaf=1,parent_label=old[0]['parent_label'] if kind=='split' else None,
                     marks=p.marks,segments=S.js(p.segments),context_segments=S.js(p.context_segments),ms_segments=S.js(p.ms_segments),
                     official_answer='',official_guidance='',review_status='pending',manually_edited=1,active=1,formula_review=1,updated_at=stamp)
-                with pymupdf.open(qp) as doc: row['stem']=segment_text(doc,p.context_segments+p.segments)
-                if p.ms_segments:
-                    with pymupdf.open(ms) as doc: row['official_guidance']=segment_text(doc,p.ms_segments)
+                if prepared is not None:
+                    row['stem'],row['official_guidance']=prepared[index]
+                else:
+                    with pymupdf.open(qp) as doc: row['stem']=segment_text(doc,p.context_segments+p.segments)
+                    if p.ms_segments:
+                        with pymupdf.open(ms) as doc: row['official_guidance']=segment_text(doc,p.ms_segments)
                 conn.execute(f"INSERT INTO questions({','.join(row)}) VALUES({','.join('?' for _ in row)})",list(row.values()))
                 created.append(row['id'])
             for q in old: conn.execute('UPDATE questions SET active=0,manually_edited=1 WHERE id=?',(q['id'],))
@@ -67,9 +79,17 @@ def install(app,S):
     @app.post('/api/papers/{pid}/layout-seed')
     def seed(request:Request,pid:str):
         u=S.user(request);p=S.paper_for(pid,u,True)
-        with pymupdf.open(S.source_path(p,'qp')) as doc:
-            segments=[{'page':i+1,'rect':list(page.rect)} for i,page in enumerate(doc)]
-            stem=segment_text(doc,segments)
+        path = S.source_path(p,'qp')
+        if public_mode.ORIGIN:
+            try:
+                with heavy_operation():
+                    segments,stem=pdf_sandbox.run('segments',path,inputs=(path,))
+            except pdf_sandbox.SandboxFailure as exc:
+                raise HTTPException(422,str(exc)) from exc
+        else:
+            with pymupdf.open(path) as doc:
+                segments=[{'page':i+1,'rect':list(page.rect)} for i,page in enumerate(doc)]
+                stem=segment_text(doc,segments)
         with S.C.connect() as conn:
             conn.execute('BEGIN IMMEDIATE')
             if conn.execute('SELECT 1 FROM questions WHERE paper_id=?',(pid,)).fetchone():raise HTTPException(409,'试卷已有拆题记录，请在题目检索中编辑已有题目')

@@ -1,0 +1,16 @@
+services:
+  cloudflared:
+    image: "${STUDIO_TUNNEL_IMAGE:?use a reviewed cloudflared digest}"
+    network_mode: service:web
+    depends_on:
+      api: {condition: service_healthy}
+    command: ["tunnel","--no-autoupdate","--config","/etc/cloudflared/config.yml","run"]
+    user: "65532:65532"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    restart: unless-stopped
+    mem_limit: 256m
+    pids_limit: 64
+    volumes:
+      - "${STUDIO_TUNNEL_DIR:?select the dedicated tunnel config directory}:/etc/cloudflared:ro"

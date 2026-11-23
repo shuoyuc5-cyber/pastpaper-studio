@@ -1,0 +1,28 @@
+# Offline or Access-restricted staging artifact. Attach an approved hostname only after Access is verified.
+name = "pastpaper-studio-device-staging"
+main = "worker.mjs"
+compatibility_date = "2026-11-12"
+workers_dev = false
+preview_urls = false
+
+[vars]
+STUDIO_READ_ONLY = "1"
+
+[assets]
+directory = "../../frontend/public/device"
+binding = "ASSETS"
+run_worker_first = true
+html_handling = "none"
+
+[[r2_buckets]]
+binding = "SHARED_PAPERS"
+bucket_name = "pastpaper-studio-synthetic-staging"
+remote = false
+
+[[ratelimits]]
+name = "SHARE_LIMIT"
+namespace_id = "803142"
+simple = { limit = 35, period = 60 }
+
+[observability]
+enabled = false

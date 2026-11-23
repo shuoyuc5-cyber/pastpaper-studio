@@ -1,0 +1,14 @@
+services:
+  verify:
+    build:
+      context: ../..
+      dockerfile: deploy/fullstack/Dockerfile
+    network_mode: none
+    init: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 3g
+    cpus: 2
+    pids_limit: 256
+    environment:
+      NEXT_TELEMETRY_DISABLED: '1'

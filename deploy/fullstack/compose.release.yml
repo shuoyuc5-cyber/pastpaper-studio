@@ -1,0 +1,64 @@
+x-locked: &locked
+  init: true
+  user: "10001:10001"
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  read_only: true
+  restart: unless-stopped
+  pids_limit: 128
+  tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=192m"]
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+x-backend: &backend
+  <<: *locked
+  image: "pastpaper-backend:${STUDIO_RELEASE:?set a commit-derived release}"
+  env_file: "${STUDIO_ENV_FILE:?select a dedicated runtime environment file}"
+  volumes: ["${STUDIO_STATE:?select an independent state directory}:/state"]
+services:
+  web:
+    <<: *locked
+    image: "pastpaper-web:${STUDIO_RELEASE:?set a commit-derived release}"
+    environment:
+      PASTPAPER_PUBLIC_ORIGIN: "${STUDIO_ORIGIN:?set the exact HTTPS origin}"
+      PASTPAPER_WEB_PORT: "3000"
+      PASTPAPER_BACKEND_PORT: "8000"
+    mem_limit: 512m
+    cpus: 1
+  api:
+    <<: *backend
+    network_mode: service:web
+    depends_on: [web]
+    volumes:
+      - "${STUDIO_STATE}:/state"
+      - "${STUDIO_SECRETS:?select an independent secrets directory}:/run/studio-secrets:ro"
+      - "${STUDIO_CAPTURE:?select a private mail capture directory}:/capture"
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health',timeout=2).close()"]
+      interval: 10s
+      timeout: 4s
+      retries: 5
+    mem_limit: 1200m
+    cpus: 1.5
+  pdf-worker:
+    <<: *backend
+    network_mode: none
+    depends_on:
+      api: {condition: service_healthy}
+    command: ["python","scripts/public_service.py","pdf-worker"]
+    stop_grace_period: 15s
+    mem_limit: 900m
+    cpus: 1
+    pids_limit: 64
+  mail-worker:
+    <<: *backend
+    depends_on:
+      api: {condition: service_healthy}
+    command: ["python","scripts/public_service.py","mail-worker"]
+    volumes:
+      - "${STUDIO_STATE}:/state"
+      - "${STUDIO_MAIL_SECRETS:?select a mail-only secrets directory}:/run/studio-secrets:ro"
+      - "${STUDIO_CAPTURE}:/capture"
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 48

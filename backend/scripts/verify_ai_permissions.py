@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 with tempfile.TemporaryDirectory(prefix='studio-permissions-') as temp:
+    os.environ['PASTPAPER_LEGACY_GUEST_WRITES']='1'
     os.environ['PASTPAPER_DATA_DIR']=temp+'/data'
     from app import main,studio,cloud_auth
     from fastapi.testclient import TestClient
@@ -39,11 +40,11 @@ with tempfile.TemporaryDirectory(prefix='studio-permissions-') as temp:
         assert client.put(endpoint,json={'local_allowed':True,'cloud_allowed':True}).status_code==200
         assert client.put(f'/api/admin/accounts/{owner}/ai-permissions',json={}).status_code==400
         client.cookies.clear();client.cookies.update(student_cookies)
-        assert client.get('/api/ai/settings').json()['local_allowed'] is True
-        assert client.put('/api/ai/settings',json={'local_enabled':True}).status_code==200
+        assert client.get('/api/ai/settings').json()['local_allowed'] is False
+        assert client.put('/api/ai/settings',json={'local_enabled':True}).status_code==403
         with patch.object(cloud_auth,'start',return_value={'id':'test','url':'https://auth.openai.com/'}) as start:
-            assert client.post('/api/chatgpt/connect',json={}).status_code==200
-            assert start.call_args.args[0]==student
+            assert client.post('/api/chatgpt/connect',json={}).status_code==403
+            start.assert_not_called()
         for provider in ('local','cloud'):
             studio.AI_TASKS[provider]={'user_id':student,'provider':provider,'status':'running','cancelled':False}
         client.cookies.clear();client.cookies.update(owner_cookies)
@@ -52,4 +53,4 @@ with tempfile.TemporaryDirectory(prefix='studio-permissions-') as temp:
         client.cookies.clear();client.cookies.update(student_cookies)
         assert client.get('/api/ai/settings').json()['local_enabled'] is False
         assert client.get('/api/questions').status_code==200
-    print('PASS: new-account defaults, shared questions/practice, admin-only changes, AI endpoint denial, per-account ChatGPT, grant/revoke and task cancellation')
+    print('PASS: new-account defaults, shared questions/practice in legacy mode, admin-only changes, host AI isolation, grant/revoke and task cancellation')

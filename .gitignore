@@ -5,6 +5,7 @@ dist/
 **/.DS_Store
 .env
 .env.*
+!.env.example
 *.log
 *.pid
 *.sqlite*
@@ -24,9 +25,20 @@ backend/data/
 outputs/PastPaper Studio 局域网证书.cer
 __pycache__/
 *.py[cod]
-frontend/node_modules/
+frontend/node_modules
 frontend/.next/
+frontend/.next-audit/
+frontend/.next-qa/
+frontend/.next-classroom/
+frontend/.next-host-update/
 frontend/.studio-runtime/
 frontend/.studio-runtime-folder-import/
 frontend/next-env.d.ts
 frontend/tsconfig.tsbuildinfo
+frontend/public/device/pdf-engine/
+/v3-npm-cache/
+.wrangler/
+.dev.vars*
+
+frontend/.next-fullstack/
+frontend/.fullstack-build-lock

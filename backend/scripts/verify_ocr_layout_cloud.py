@@ -11,6 +11,7 @@ import jwt
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 with tempfile.TemporaryDirectory(prefix='studio-ocr-') as temp:
+    os.environ['PASTPAPER_LEGACY_GUEST_WRITES']='1'
     os.environ['PASTPAPER_DATA_DIR']=temp+'/data'
     from app import main,studio,ocr,cloud_auth
     from app.question_engine import extract_questions
@@ -100,7 +101,7 @@ with tempfile.TemporaryDirectory(prefix='studio-ocr-') as temp:
         assert client.post('/api/papers/'+paper['id']+'/layout-seed',json={}).status_code==409
         code=client.post('/api/admin/invitations',json={}).json()['code']
         client.post('/api/auth/register',json={'username':'隔离学生','password':'temporary-password-only','invite_code':code}).raise_for_status()
-        assert client.get('/api/chatgpt/status').json()['connected'] is False
+        assert client.get('/api/chatgpt/status').status_code==403
         assert client.get('/api/questions/'+q['id']).status_code==404
         assert client.post('/api/papers/'+paper['id']+'/layout-seed',json={}).status_code==404
     print('PASS: image-only PDF OCR + unchanged source; split/merge/undo; original attempt preserved; PKCE/cancel/state; signed JWT/nonce/audience; 0600 credentials; cloud off; no live inference')

@@ -116,6 +116,7 @@ def finish(flow,params):
     flow['issued_id']=issued
     if not flow.get('previous'):
         with LOCK:
+            if flow['status']!='pending':raise ValueError('登录已取消')
             pending=load(flow['user_id']);pending['pending_client']=issued;save(flow['user_id'],pending)
     code=params.get('code',[''])[0]
     if not code:raise ValueError('登录没有返回授权码')

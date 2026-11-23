@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'backend'))
 with tempfile.TemporaryDirectory(prefix='studio-acceptance-') as temp:
+    os.environ['PASTPAPER_LEGACY_GUEST_WRITES']='1'
     os.environ['PASTPAPER_DATA_DIR']=temp+'/data'
     from app import main, studio
     from fastapi.testclient import TestClient

@@ -1,0 +1,30 @@
+[Unit]
+Description=PastPaper Studio web
+After=network.target
+
+[Service]
+Type=simple
+User=pastpaper
+Group=pastpaper
+EnvironmentFile=/etc/pastpaper/fullstack.env
+WorkingDirectory=/opt/pastpaper/current
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictSUIDSGID=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+CapabilityBoundingSet=
+Restart=on-failure
+RestartSec=3
+ExecStart=/usr/bin/node frontend/server-public.cjs
+InaccessiblePaths=/var/lib/pastpaper/data /etc/pastpaper/secrets
+MemoryMax=768M
+TasksMax=96
+
+[Install]
+WantedBy=multi-user.target

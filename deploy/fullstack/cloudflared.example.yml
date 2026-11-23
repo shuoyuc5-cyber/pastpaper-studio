@@ -1,0 +1,13 @@
+# Configure Access (deny by default) for the hostname before creating any route.
+tunnel: REPLACE_WITH_DEDICATED_TUNNEL_ID
+credentials-file: /etc/cloudflared/pastpaper-staging.json
+ingress:
+  - hostname: staging.example.org
+    service: http://127.0.0.1:3000
+    originRequest:
+      access:
+        required: true
+        teamName: REPLACE_WITH_ACCESS_TEAM
+        audTag:
+          - REPLACE_WITH_STAGING_ACCESS_AUDIENCE
+  - service: http_status:404

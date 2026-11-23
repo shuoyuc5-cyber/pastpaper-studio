@@ -2,9 +2,9 @@
 
 ## Independent setup / 独立安装
 
-Download or clone the source into a permanent writable folder on your own Mac. Do not copy someone else's `backend/data/` or `work/`. Install Python 3.11+, Node.js 20+ and npm separately. From the repository root:
+Download or clone the source into a permanent writable folder on your own Mac. Do not copy someone else's `backend/data/` or `work/`. Install Python 3.11+, Node.js 22.13+ and npm separately. From the repository root:
 
-下载源码到自己的 Mac，不能复制他人的数据或运行目录。自行安装 Python、Node.js 和 npm，在仓库根目录执行：
+下载源码到自己的 Mac，不能复制他人的数据或运行目录。安装 Python 3.11+、Node.js 22.13+ 和 npm，在仓库根目录执行：
 
 ```bash
 python3 -m venv backend/.venv
@@ -38,6 +38,8 @@ After changing source or pulling updates, run `npm ci` and `npm run build` in `f
 更新后重新安装前端依赖、构建并启动。运行副本避免构建覆盖在线脚本。关闭启动窗口后服务继续运行，Mac 休眠或关机会中断访问。
 
 ## LAN and troubleshooting / 局域网与排错
+
+The launcher defaults to this Mac. See the [host setup guide](HOST_SETUP.md) for status, stop, restart and explicit LAN access.
 
 Use the current address printed by your launcher. Devices need a network that permits peer connections. HTTP is unencrypted; use trusted networks only. No certificate installation or firewall/proxy changes occur automatically.
 

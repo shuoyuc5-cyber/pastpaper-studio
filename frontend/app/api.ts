@@ -6,8 +6,8 @@ export async function api<T = Record<string, unknown>>(url: string, init?: Reque
   }
   return response.json() as Promise<T>;
 }
-export const jsonBody = (body: unknown, method = 'POST') => ({ method, body: JSON.stringify(body) });
-export type User = { id: string; username: string; role: string };
+export const jsonBody = (body: unknown, method = 'POST') => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+export type User = { id: string; username: string; role: string; publicMode?: boolean };
 export type Segment = { page: number; rect: number[] };
 export type Question = {
   id: string; active?: number; ocr_used?: number; label: string; root_label: string; parent_label: string | null; paper_id: string; leaf: number;
